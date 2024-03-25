@@ -5,8 +5,11 @@
 #include <getopt.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <stdio.h>
 #include <fcntl.h>
+
+#include "logger.h"
 
 
 #define CHUNK_SIZE 1024 // read 1024 bytes at a time
@@ -23,8 +26,6 @@ char* PUBLIC_DIR = PUBLIC_DIR_DEFAULT;
 
 
 int main(int argc, char **argv) {
-  // char *port = argc == 1 ? "8000" : argv[1];
-  
   char opt;
   while ((opt = getopt(argc, argv, "p:r:")) != -1) {
     switch (opt)
@@ -38,7 +39,7 @@ int main(int argc, char **argv) {
       strcpy(PORT, optarg);
       break;
     case '?':
-      fprintf(stderr, "Wrong arguments given!!!\n");
+      syslog(LOG_DEBUG, "[Foxweb]: Wrong arguments given!!!\n");
       exit(EXIT_FAILURE);
     default:
       exit(EXIT_FAILURE);
@@ -55,15 +56,15 @@ int file_exists(const char *file_name) {
   int exists;
 
   exists = (open(file_name, O_RDONLY))!=-1; //(stat(file_name, &buffer) == 0);
-  fprintf(stderr, "\'%s\'", file_name);
-  fprintf(stderr, exists ? " FOUND\n" : " NOT FOUND\n");
+  // syslog(LOG_DEBUG, "\'%s\'", file_name);
+  // syslog(LOG_DEBUG, exists ? " FOUND\n" : " NOT FOUND\n");
   return exists;
   // int exists = 0;
   // int fd = open(file_name, O_RDONLY);
   // exists = fd != -1;
   // close(fd);
-  // fprintf(stderr, "\'%s\'", file_name);
-  // fprintf(stderr, "\'%d\'", exists);
+  // syslog(LOG_DEBUG, "\'%s\'", file_name)
+  // syslog(LOG_DEBUG, "\'%d\'", exists)
   // return exists;
 }
 
@@ -92,7 +93,7 @@ void route() {
     char *index_html;
     index_html = malloc(strlen(PUBLIC_DIR) + strlen(INDEX_HTML));
     sprintf(index_html, "%s%s", PUBLIC_DIR, INDEX_HTML);
-    fprintf(stderr, "%s\n", index_html);
+    // syslog(LOG_DEBUG, "%s\n", index_html);
     
     HTTP_200;
     if (file_exists(index_html)) {
@@ -100,6 +101,7 @@ void route() {
     } else {
       printf("Hello! You are using %s\n\n", request_header("User-Agent"));
     }
+    log_request(200);
     free(index_html);
   }
 
@@ -113,6 +115,7 @@ void route() {
       printf("%s: %s\n", h->name, h->value);
       h++;
     }
+    log_request(200);
   }
 
   POST("/") {
@@ -121,22 +124,25 @@ void route() {
     printf("Fetch the data using `payload` variable.\n");
     if (payload_size > 0)
       printf("Request body: %s", payload);
+    log_request(201);
   }
 
   GET(uri) {
     char *file_name;
-    fprintf(stderr, "VVVVVVVVVVVVVVVVVVVVV\n");
+    // syslog(LOG_DEBUG, "VVVVVVVVVVVVVVVVVVVVV\n");
     file_name = malloc(strlen(PUBLIC_DIR) + strlen(uri));
     sprintf(file_name, "%s%s", PUBLIC_DIR, uri);
 
     if (file_exists(file_name)) {
       HTTP_200;
       read_file(file_name);
+      log_request(200);
     } else {
       HTTP_404;
       sprintf(file_name, "%s%s", PUBLIC_DIR, NOT_FOUND_HTML);
       if (file_exists(file_name))
         read_file(file_name);
+      log_request(404);
     }
     free(file_name);
   }
