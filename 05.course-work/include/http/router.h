@@ -1,7 +1,6 @@
 #ifndef __HTTP_ROUTER_H__
 #define __HTTP_ROUTER_H__
 
-
 #include "request.h"
 #include "server.h"
 #include "common.h"

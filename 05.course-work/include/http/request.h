@@ -1,7 +1,6 @@
 #ifndef __HTTP_REQUEST_H__
 #define __HTTP_REQUEST_H__
 
-
 #include <stddef.h>
 
 
