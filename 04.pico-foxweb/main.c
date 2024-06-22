@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
       break;
     }
   }
-  
+
   serve_forever(PORT);
   return 0;
 }
@@ -87,14 +87,14 @@ int read_file(const char *file_name) {
 }
 
 void route() {
-  ROUTE_START()
+  ROUTER_START()
 
   GET("/") {
     char *index_html;
     index_html = malloc(strlen(PUBLIC_DIR) + strlen(INDEX_HTML));
     sprintf(index_html, "%s%s", PUBLIC_DIR, INDEX_HTML);
     // syslog(LOG_DEBUG, "%s\n", index_html);
-    
+
     HTTP_200;
     if (file_exists(index_html)) {
       read_file(index_html);
@@ -147,5 +147,5 @@ void route() {
     free(file_name);
   }
 
-  ROUTE_END()
+  ROUTER_END()
 }

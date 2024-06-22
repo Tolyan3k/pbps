@@ -25,7 +25,8 @@ static void respond(int);
 static char *buf;
 
 // Client request
-char *method, // "GET" or "POST"
+char
+    *method, // "GET" or "POST"
     *uri,     // "/index.html" things before '?'
     *qs,      // "a=1&b=2" things after  '?'
     *prot,    // "HTTP/1.1"
@@ -215,7 +216,7 @@ void respond(int slot) {
     t2 = request_header("Content-Length"); // and the related header if there is
     payload = t;
     payload_size = t2 ? atoi(t2) : (rcvd - (t - buf));
-    
+
     // bind clientfd to stdout, making it easier to write
     int clientfd = clients[slot];
     dup2(clientfd, STDOUT_FILENO);
