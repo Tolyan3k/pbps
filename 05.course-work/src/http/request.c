@@ -94,7 +94,7 @@ const char* request__get_header_value(const HttpRequestPtr this, const char *hea
 }
 
 const DictPtr request__get_headers(const HttpRequestPtr this) {
-    return NULL;
+    return this->headers;
 }
 
 

@@ -68,13 +68,11 @@ void route(
     GET("/test", request) {
         HTTP_200;
         printf("List of request headers:\n\n");
-
-        // header_t *h = request_headers();
-
-        // while (h->name) {
-        //     printf("%s: %s\n", h->name, h->value);
-        //     h++;
-        // }
+        const VectorPtr headers = Dict.items(HttpRequest.get_headers(request));
+        for (int i = 0; i < Vector.size(headers); ++i) {
+            const PairPtr pair = (PairPtr)Vector.get(headers, i);
+            printf("%s: %s\n", Pair.get_first(pair), Pair.get_second(pair));
+        }
         Logger.request(Global.logger, request, 200);
     }
 
