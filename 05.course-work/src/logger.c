@@ -35,7 +35,9 @@ LoggerPtr logger__init(const char *log_file) {
 };
 
 void logger__destroy(LoggerPtr this) {
-    fclose(this->file_ptr);
+    if (this->file_ptr) {
+        fclose(this->file_ptr);
+    }
     free(this);
 }
 
