@@ -72,5 +72,6 @@ void logger__request(
         HttpRequest.get_header(request, "Referrer"),
         HttpRequest.get_header(request, "User-Agent")
     );
+    fflush(stream);
     pthread_mutex_unlock(&this->mutex);
 }
