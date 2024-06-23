@@ -145,6 +145,7 @@ void respond(int client_fd, const HttpServerSettingsPtr server_settings) {
     int buf_size = server_settings->buf_size;
 
     char *buf = (char*)malloc(sizeof(char) * buf_size);
+    buf = (char*)memset(buf, '\0', buf_size);
     int rcvd = recv(client_fd, buf, buf_size, 0);
 
     if (rcvd < 0) // receive error
