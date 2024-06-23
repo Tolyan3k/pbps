@@ -1,22 +1,22 @@
 #include "http/server.h"
 
+#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <ctype.h>
-#include <netdb.h>
+#include <sys/mman.h>
+#include <pthread.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
-#include <sys/socket.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <ctype.h>
 
 #include "http.h"
 
-
 void respond(int client_fd, const HttpServerSettingsPtr server_settings);
-
+void process_connection(HttpServerPtr this);
 
 typedef struct HTTP_SERVER {
     HttpServerSettingsPtr settings;
@@ -109,15 +109,7 @@ void server__accept_connections(HttpServerPtr this) {
             fprintf(stderr, "accept() error");
             exit(EXIT_FAILURE);
         } else {
-            if (fork() == 0) {
-                close(this->listen_fd);
-                respond(this->clients[this->slot], this->settings);
-                close(this->clients[this->slot]);
-                this->clients[this->slot] = -1;
-                exit(EXIT_SUCCESS);
-            } else {
-                close(this->clients[this->slot]);
-            }
+            process_connection(this);
         }
 
         while (this->clients[this->slot] != -1) {
@@ -126,6 +118,28 @@ void server__accept_connections(HttpServerPtr this) {
     }
 }
 
+typedef struct PROC_CONN_INFO {
+    int *client_fd;
+    HttpServerSettingsPtr setings;
+} PROC_CONN_INFO;
+
+void* process_connection_routine(void* arg)
+{
+    PROC_CONN_INFO *test = (PROC_CONN_INFO*)arg;
+    respond(*test->client_fd, test->setings);
+    close(*test->client_fd);
+    *test->client_fd = -1;
+    free(arg);
+}
+
+void process_connection(HttpServerPtr this)
+{
+    PROC_CONN_INFO *test = (PROC_CONN_INFO*)malloc(sizeof(PROC_CONN_INFO));
+    test->client_fd = &this->clients[this->slot];
+    test->setings = this->settings;
+    pthread_t thread;
+    pthread_create(&thread, NULL, process_connection_routine, test);
+}
 
 void respond(int client_fd, const HttpServerSettingsPtr server_settings) {
     int buf_size = server_settings->buf_size;
@@ -141,18 +155,16 @@ void respond(int client_fd, const HttpServerSettingsPtr server_settings) {
     {
         HttpRequestPtr http_request = HttpRequest.init(buf);
 
-        // bind clientfd to stdout, making it easier to write
-        dup2(client_fd, STDOUT_FILENO);
-        close(client_fd);
+        FILE *out = fdopen(client_fd, "w");
 
         // call router
-        route(http_request, server_settings);
+        route(http_request, server_settings, out);
         HttpRequest.destroy(http_request);
 
         // tidy up
-        fflush(stdout);
-        shutdown(STDOUT_FILENO, SHUT_WR);
-        close(STDOUT_FILENO);
+        fflush(out);
+        shutdown(client_fd, SHUT_WR);
+        close(client_fd);
     }
 
     free(buf);
