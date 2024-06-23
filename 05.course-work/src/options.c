@@ -1,11 +1,11 @@
-#include "../include/options.h"
+#include "options.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
 
-#include "../include/utils.h"
+#include "utils.h"
 
 
 #define OPTS_PUBLIC_DIR_KEY "public_dir"
@@ -14,7 +14,7 @@
 
 
 typedef struct OPTIONS {
-    DICT *options;
+    DictPtr options;
 } OPTIONS;
 
 OptionsPtr options__init(int argc, char **argv) {

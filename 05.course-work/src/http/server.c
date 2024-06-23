@@ -1,4 +1,4 @@
-#include "../include/http/server.h"
+#include "http/server.h"
 
 #include <arpa/inet.h>
 #include <ctype.h>
@@ -12,39 +12,10 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "../include/http.h"
+#include "http.h"
 
 
-void respond(int client_fd, const HttpServerSettingsPtr server_settings) {
-    int BUF_SIZE = server_settings->buf_size;
-
-    char *buf = malloc(BUF_SIZE);
-    int rcvd = recv(client_fd, buf, BUF_SIZE, 0);
-
-    if (rcvd < 0) // receive error
-        fprintf(stderr, ("recv() error\n"));
-    else if (rcvd == 0) // receive socket closed
-        fprintf(stderr, "Client disconnected upexpectedly.\n");
-    else // message received
-    {
-        HttpRequestPtr http_request = HttpRequest.init(buf);
-
-        // bind clientfd to stdout, making it easier to write
-        dup2(client_fd, STDOUT_FILENO);
-        close(client_fd);
-
-        // call router
-        route(http_request, server_settings);
-        HttpRequest.destroy(http_request);
-
-        // tidy up
-        fflush(stdout);
-        shutdown(STDOUT_FILENO, SHUT_WR);
-        close(STDOUT_FILENO);
-    }
-
-    free(buf);
-}
+void respond(int client_fd, const HttpServerSettingsPtr server_settings);
 
 
 typedef struct HTTP_SERVER {
@@ -153,4 +124,36 @@ void server__accept_connections(HttpServerPtr this) {
             this->slot = (this->slot + 1) % this->settings->max_connections;
         }
     }
+}
+
+
+void respond(int client_fd, const HttpServerSettingsPtr server_settings) {
+    int buf_size = server_settings->buf_size;
+
+    char *buf = (char*)malloc(sizeof(char) * buf_size);
+    int rcvd = recv(client_fd, buf, buf_size, 0);
+
+    if (rcvd < 0) // receive error
+        fprintf(stderr, ("recv() error\n"));
+    else if (rcvd == 0) // receive socket closed
+        fprintf(stderr, "Client disconnected upexpectedly.\n");
+    else // message received
+    {
+        HttpRequestPtr http_request = HttpRequest.init(buf);
+
+        // bind clientfd to stdout, making it easier to write
+        dup2(client_fd, STDOUT_FILENO);
+        close(client_fd);
+
+        // call router
+        route(http_request, server_settings);
+        HttpRequest.destroy(http_request);
+
+        // tidy up
+        fflush(stdout);
+        shutdown(STDOUT_FILENO, SHUT_WR);
+        close(STDOUT_FILENO);
+    }
+
+    free(buf);
 }

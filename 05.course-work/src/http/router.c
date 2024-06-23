@@ -1,4 +1,4 @@
-#include "../include/http/router.h"
+#include "http/router.h"
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -10,23 +10,16 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#include "../include/html.h"
+#include "global.h"
+#include "html.h"
+
 
 int file_exists(const char *file_name) {
-  struct stat buffer;
-  int exists;
+    struct stat buffer;
+    int exists;
 
-  exists = (open(file_name, O_RDONLY))!=-1; //(stat(file_name, &buffer) == 0);
-  // syslog(LOG_DEBUG, "\'%s\'", file_name);
-  // syslog(LOG_DEBUG, exists ? " FOUND\n" : " NOT FOUND\n");
-  return exists;
-  // int exists = 0;
-  // int fd = open(file_name, O_RDONLY);
-  // exists = fd != -1;
-  // close(fd);
-  // syslog(LOG_DEBUG, "\'%s\'", file_name)
-  // syslog(LOG_DEBUG, "\'%d\'", exists)
-  // return exists;
+    exists = (open(file_name, O_RDONLY))!=-1;
+    return exists;
 }
 
 int read_file(const char *file_name) {
@@ -69,6 +62,7 @@ void route(
                 HttpRequest.get_header(request, "User-Agent"));
         }
         free(index_html_path);
+        Logger.request(Global.logger, request, 200);
     }
 
     GET("/test", request) {
@@ -81,6 +75,7 @@ void route(
         //     printf("%s: %s\n", h->name, h->value);
         //     h++;
         // }
+        Logger.request(Global.logger, request, 200);
     }
 
     POST("/", request) {
@@ -92,6 +87,7 @@ void route(
         if (payload_size > 0) {
             printf("Request body: %s", payload);
         }
+        Logger.request(Global.logger, request, 201);
     }
 
     GET(HttpRequest.get_uri(request), request) {
@@ -102,11 +98,13 @@ void route(
         if (file_exists(file_name)) {
             HTTP_200;
             read_file(file_name);
+            Logger.request(Global.logger, request, 200);
         } else {
             HTTP_404;
             sprintf(file_name, "%s%s", public_dir, HTML_NOT_FOUND);
             if (file_exists(file_name))
                 read_file(file_name);
+            Logger.request(Global.logger, request, 201);
         }
         free(file_name);
     }

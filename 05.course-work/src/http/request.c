@@ -1,4 +1,4 @@
-#include "../include/http.h"
+#include "http/request.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -6,14 +6,14 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#include "../include/utils.h"
-
+#include "http/common.h"
+#include "utils.h"
 
 char* _uri_unescape(char* uri);
 
 
 typedef struct HTTP_REQUEST {
-    DICT *headers;
+    DictPtr headers;
     char *_raw;
     char *method;
     char *uri;
@@ -51,10 +51,12 @@ HttpRequestPtr request__init(const char *request_raw) {
         }
         Dict.set_value(this->headers, key, value);
         t = value + 1 + strlen(value);
-        if (t[1] == '\r' && t[2] == '\n')
+        if (t[1] == '\r' && t[2] == '\n') {
+            t += 3;
             break;
+        }
     }
-    t = strtok(NULL, "\r\n");
+    t = strtok(t, "");
     t2 = Dict.get_value(this->headers, HTTP_HEADER_CONTENT_LENGTH); // and the related header if there is
     this->payload = t;
     this->payload_size = t2 ? atoi(t2) : 0;
@@ -87,11 +89,11 @@ size_t request__get_payload_size(const HttpRequestPtr this) {
     return this->payload_size;
 }
 
-const char* request__get_header(const HttpRequestPtr this, const char *header) {
+const char* request__get_header_value(const HttpRequestPtr this, const char *header) {
     return Dict.get_value(this->headers, header);
 }
 
-const char **request__get_headers(const HttpRequestPtr this) {
+const DictPtr request__get_headers(const HttpRequestPtr this) {
     return NULL;
 }
 

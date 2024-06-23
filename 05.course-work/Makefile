@@ -1,2 +1,2 @@
 build:
-	gcc -o .main ./src/*.c
+	gcc -o .course-work -I includes `find . -name \*.c`

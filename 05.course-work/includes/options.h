@@ -8,6 +8,8 @@
 
 typedef struct OPTIONS OPTIONS;
 typedef struct OPTIONS *OptionsPtr;
+
+
 OptionsPtr options__init(int argc, char **argv);
 void options__destroy(OptionsPtr this);
 const char* options__get_port(const OptionsPtr this);
