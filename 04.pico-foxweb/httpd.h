@@ -5,7 +5,8 @@
 #include <string.h>
 
 // Client request
-extern char *method, // "GET" or "POST"
+extern char
+    *method, // "GET" or "POST"
     *uri,            // "/index.html" things before '?'
     *qs,             // "a=1&b=2" things after  '?'
     *prot,           // "HTTP/1.1"
@@ -37,13 +38,13 @@ void route();
 #define HTTP_500 printf("%s 500 Internal Server Error\n\n", RESPONSE_PROTOCOL)
 
 // some interesting macro for `route()`
-#define ROUTE_START() if (0) {
+#define ROUTER_START() if (0) {
 #define ROUTE(METHOD, URI)                                                     \
   }                                                                            \
   else if (strcmp(URI, uri) == 0 && strcmp(METHOD, method) == 0) {
 #define GET(URI) ROUTE("GET", URI)
 #define POST(URI) ROUTE("POST", URI)
-#define ROUTE_END()                                                            \
+#define ROUTER_END()                                                            \
   }                                                                            \
   else HTTP_500;
 

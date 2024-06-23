@@ -1,0 +1,11 @@
+[Unit]
+Description=PICO Fox web service
+After=network.target 
+
+[Service]
+ExecStart=/usr/local/sbin/PICOFoxweb -p 8080 -r /var/www/foxweb/webroot
+User=picofoxweb
+Group=picofoxweb
+
+[Install]
+WantedBy=multi-user.target
