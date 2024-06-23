@@ -69,7 +69,7 @@ void logger__request(
         HttpRequest.get_protocol(request),
         response_code,
         HttpRequest.get_payload_size(request),
-        HttpRequest.get_header(request, "Referrer"),
+        HttpRequest.get_header(request, "Referer"),
         HttpRequest.get_header(request, "User-Agent")
     );
     fflush(stream);
