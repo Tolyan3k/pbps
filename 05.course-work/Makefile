@@ -1,4 +1,4 @@
-all: course-work
+all: build
 
-course-work:
+build:
 	gcc -o .course-work -I includes `find . -name \*.c`
